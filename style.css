@@ -9,3 +9,6 @@
 @media(max-width:600px){.quiz-actions{grid-template-columns:1fr}}
 
 .quiz-mode-switch{display:flex;flex-wrap:wrap;gap:9px;margin:10px 0 18px}.quiz-mode-switch button{padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;background:white;color:#17335c;cursor:pointer;font:inherit;font-weight:700}.quiz-mode-switch button.selected{background:#17335c;color:white;border-color:#17335c}
+
+/* 프롬프트 구분 퀴즈 */
+.pq-card{max-width:850px;margin:0 auto}.pq-card h3{margin:20px 0 14px}.pq-prompt{white-space:pre-wrap;line-height:1.8;background:#eef4fd;border:1px solid #cad9ed;padding:20px;border-radius:14px;margin:18px 0 24px;color:#17335c;font-size:15px}.pq-card .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pq-card .choices button{min-height:56px}.pq-card .feedback{margin-top:22px}.pq-card .feedback p{margin:10px 0}.pq-card .progress{margin-top:15px}@media(max-width:620px){.pq-card .choices{grid-template-columns:1fr}.pq-prompt{padding:15px;font-size:14px}}
