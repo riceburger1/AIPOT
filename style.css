@@ -21,3 +21,6 @@
 .mock-entry:hover,.mock-entry:focus-visible{background:#e8f1ff;outline:2px solid #a5c2ff;outline-offset:2px}
 .tabs .mock-tab:not(.active){background:#e6efff;color:#163e91;border-color:#94b6ed}
 @media(max-width:600px){.mock-entry{width:100%;font-size:14px}}
+
+/* 400문항 실전 시험형 정답과 해설 */
+.mock-explain{margin-top:10px;line-height:1.8;white-space:pre-wrap}.mock-toolbar button{min-height:54px}
