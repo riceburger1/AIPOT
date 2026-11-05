@@ -24,3 +24,6 @@
 
 /* 400문항 실전 시험형 정답과 해설 */
 .mock-explain{margin-top:10px;line-height:1.8;white-space:pre-wrap}.mock-toolbar button{min-height:54px}
+
+/* DEQ 4 PDF 심화 챕터 */
+.chapter-lesson-head{margin:22px 0 12px}.chapter-lesson-head h3{margin:0}.deq-lesson{border:1px solid #d5dff0}.lesson-item{border-top:1px solid #e2e8f4;margin-top:10px;padding-top:10px}.lesson-item summary{font-weight:700;cursor:pointer;color:#17315c;line-height:1.65}.lesson-item[open] summary{margin-bottom:8px}.lesson-item .description{white-space:pre-line;line-height:1.75}.lesson-item .key{margin-top:8px}
