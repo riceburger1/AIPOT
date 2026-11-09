@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 let bank=null, loading=null;
-const KEY='yeonje-deq-subjective-106-v1';
+const KEY='yeonje-deq-subjective-106-v2-txt';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalize=v=>String(v??'').normalize('NFKC').toLowerCase().replace(/\s|[.,;:·()\[\]{}\-_/]/g,'');
@@ -40,7 +40,7 @@ function respond(){let s=get(),q=current(s);if(!q||s.lastFeedback?.id===q.id)ret
 }
 function reveal(){let s=get(),q=current(s);if(!q)return;s.failures[q.id]=Math.max(1,s.failures[q.id]||0);s.revealed[q.id]=true;s.resolved[q.id]=true;s.lastFeedback={id:q.id,ok:false,revealed:true};save(s);draw()}
 function next(){let s=get(),q=current(s);if(!q||!s.resolved?.[q.id])return;s.at++;s.lastFeedback=null;save(s);draw()}
-function guide(){return `<div class="card"><h3>학습 방법</h3><p class="description">첨부한 ‘주관식 문제.hwp’의 106문항을 기준으로 구성했습니다. 한 세트에 30문제를 출제합니다. 답이 틀리면 초성 힌트를 표시하며 다시 입력할 수 있습니다. 정답을 맞히면 풀이 설명과 다음 문제 버튼이 나타납니다.</p><p class="note">※ 일부 원본 문항은 정답표나 문제 표현을 다시 확인해야 합니다. ‘원본 대조 필요’ 표시를 참고하세요. 여러 항목을 묻는 문제는 초성이 항목별로 표시됩니다.</p></div>`}
+function guide(){return `<div class="card"><h3>학습 방법</h3><p class="description">첨부한 최신 TXT의 106문항을 기준으로 구성했습니다. 한 세트에 30문제를 출제합니다. 답이 틀리면 초성 힌트를 표시하며 다시 입력할 수 있습니다. 정답을 맞히면 풀이 설명과 다음 문제 버튼이 나타납니다.</p><p class="note">※ 일부 원본 문항은 정답표나 문제 표현을 다시 확인해야 합니다. ‘원본 대조 필요’ 표시를 참고하세요. 여러 항목을 묻는 문제는 초성이 항목별로 표시됩니다.</p></div>`}
 function draw(){if(!bank){$('view').innerHTML='<div class="card">주관식 문제은행을 불러오는 중입니다.</div>';return}
  let s=get();if(!s.ids?.length){$('view').innerHTML=`<div class="sectionhead"><div><h2>DEQ 주관식 30문제 도전</h2><p>전체 ${pool().length}문항 · 1회 30문제 · 오답 초성 힌트 제공</p></div></div>${guide()}<div class="subj-tools"><button class="primary" id="subStart">30문제 시작하기</button></div>`;$('subStart').onclick=()=>start('first');return}
  let solved=s.ids.filter(id=>s.resolved?.[id]).length;
