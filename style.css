@@ -27,3 +27,17 @@
 
 /* DEQ 4 PDF 심화 챕터 */
 .chapter-lesson-head{margin:22px 0 12px}.chapter-lesson-head h3{margin:0}.deq-lesson{border:1px solid #d5dff0}.lesson-item{border-top:1px solid #e2e8f4;margin-top:10px;padding-top:10px}.lesson-item summary{font-weight:700;cursor:pointer;color:#17315c;line-height:1.65}.lesson-item[open] summary{margin-bottom:8px}.lesson-item .description{white-space:pre-line;line-height:1.75}.lesson-item .key{margin-top:8px}
+/* DEQ 주관식 30문제 도전 */
+.tabs .subj-tab:not(.active){background:#eaf8f2;color:#096b55;border-color:#9dd4bc}
+.subj-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0 18px}
+.subj-tools button{border:1px solid #c5d1e6;background:white;color:#1d395e;padding:13px 10px;border-radius:12px;font-weight:800;min-height:50px}
+.subj-tools .new{background:#e9f4ff;border-color:#92bce9}
+.subj-card{max-width:890px;margin:18px auto 0}.subj-label{font-weight:700;display:block;margin-bottom:7px}
+#subjForm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}#subjForm .subj-label{grid-column:1 / -1;margin:0}
+.subj-feedback{background:#f0f6fc;border:1px solid #d3e0f0;border-radius:12px;margin-top:15px;padding:14px;line-height:1.8}
+.subj-feedback.bad{background:#fff6ed;border-color:#f1d2ac}.subj-feedback.good{background:#eaf8f0;border-color:#add7bd}
+.subj-hint{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:10px 0;padding:10px 12px;border-radius:9px;background:white}
+.subj-hint span{font-size:13px;color:#52677c}.subj-hint strong{font-size:21px;letter-spacing:2px;color:#a54b1d;word-break:break-word}
+.subj-review{font-size:13px;color:#a05222;background:#fff8df;padding:10px;border-radius:8px;line-height:1.7}
+.subj-finish{text-align:center;padding:28px 16px}.subj-finish .symbol{font-size:46px}
+@media(max-width:650px){.subj-tools{grid-template-columns:1fr}.subj-tools button{min-height:44px}#subjForm{grid-template-columns:1fr}.subj-hint strong{font-size:18px}}
