@@ -73,38 +73,43 @@ h+='</article><p class="note">기존 DEQ 매일퀴즈, DEQ 주관식 106문제 �
 function wrongIds(s){return Object.keys(s.wrong||{}).filter(id=>byId.has(id))}
 function launchReview(){const s=load();s.review={ids:shuffle(wrongIds(s)),at:0,feedback:null,correct:0,missed:0};save(s);drawReview()}
 function drawReview(){const s=load(),n=wrongIds(s).length;let h=head('DEQ 오답노트',`핵심용어 주관식에서 틀린 문제 ${n}개 · 정답을 맞히면 자동 삭제 · 틀리면 계속 보관`);
-if(!n){s.review=null;save(s);$('view').innerHTML=h+`<div class="card done"><div class="symbol">🎉</div><h2>오답노트가 비었습니다!</h2><p>오답노트에 남은 문제가 없습니다. 새로운 핵심용어 주관식 문제를 풀다가 틀리면 이곳에 다시 저장됩니다.</p><button class="primary" id="tqGoMain">새로운 30문제 풀기</button></div>`;$('tqGoMain').onclick=()=>document.querySelector('[data-tab="deqtermquiz"]').click();return}
+if(!n && !s.review?.feedback){s.review=null;save(s);$('view').innerHTML=h+`<div class="card done"><div class="symbol">🎉</div><h2>오답노트가 비었습니다!</h2><p>오답노트에 남은 문제가 없습니다. 새로운 핵심용어 주관식 문제를 풀다가 틀리면 이곳에 다시 저장됩니다.</p><button class="primary" id="tqGoMain">새로운 30문제 풀기</button></div>`;$('tqGoMain').onclick=()=>document.querySelector('[data-tab="deqtermquiz"]').click();return}
 if(!s.review?.ids?.length){$('view').innerHTML=h+`<div class="card"><h3>남아 있는 오답 ${n}문제</h3><p>오답노트에서 정답을 맞히면 목록에서 즉시 삭제합니다. 또 틀리면 삭제되지 않고 다음 복습 때 다시 나옵니다.</p><p>오답이 여러 번 누적되더라도 같은 문제는 한 건으로 관리합니다.</p><button class="primary" id="tqReviewStart">오답 ${n}문제 풀기</button></div>`;$('tqReviewStart').onclick=launchReview;return}
-let v=s.review;while(v.at<v.ids.length&&!s.wrong[v.ids[v.at]]){v.at++;v.feedback=null}if(v.at>=v.ids.length){save(s);$('view').innerHTML=h+`<div class="card done"><h2>이번 오답 복습 완료</h2><div class="gridStats"><div class="stat"><strong>${v.correct}</strong><small>정답으로 삭제</small></div><div class="stat"><strong>${v.missed}</strong><small>복습 중 오답</small></div><div class="stat"><strong>${n}</strong><small>남은 오답</small></div></div><p>틀린 문제는 오답노트에 남아 있습니다. 다시 도전하면 재출제됩니다.</p><button class="primary" id="tqReviewAgain">남은 오답 다시 풀기</button></div>`;$('tqReviewAgain').onclick=launchReview;return}
+let v=s.review;while(v.at<v.ids.length&&!s.wrong[v.ids[v.at]]&&!v.feedback){v.at++;v.feedback=null}if(v.at>=v.ids.length){save(s);$('view').innerHTML=h+`<div class="card done"><h2>이번 오답 복습 완료</h2><div class="gridStats"><div class="stat"><strong>${v.correct}</strong><small>정답으로 삭제</small></div><div class="stat"><strong>${v.missed}</strong><small>복습 중 오답</small></div><div class="stat"><strong>${n}</strong><small>남은 오답</small></div></div><p>틀린 문제는 오답노트에 남아 있습니다. 다시 도전하면 재출제됩니다.</p><button class="primary" id="tqReviewAgain">남은 오답 다시 풀기</button></div>`;$('tqReviewAgain').onclick=launchReview;return}
 const q=current(v),answered=!!v.feedback;h+=`<div class="gridStats"><div class="stat"><strong>${v.at+1}/${v.ids.length}</strong><small>이번 복습</small></div><div class="stat"><strong>${v.correct}</strong><small>정답으로 삭제</small></div><div class="stat"><strong>${n}</strong><small>남은 오답</small></div></div><div class="card termquiz-card"><div class="qmeta"><span>오답 복습 · ${q.chapter}장</span><span>누적 오답 ${s.wrong[q.id]?.count||1}회</span></div><div class="question">설명에 맞는 핵심 용어를 입력하세요.</div><p class="termquiz-definition">${esc(q.meaning)}</p>`;
 if(!answered)h+=`<form id="tqReviewForm" novalidate><label for="tqReviewAnswer">정답 입력</label><input id="tqReviewAnswer" type="text" class="shortInput" autocomplete="off" inputmode="text" placeholder="기억나는 용어를 입력하세요"><button id="tqReviewCheck" type="submit" class="primary">정답 확인</button></form><p id="tqReviewError" role="alert" class="termquiz-error" hidden></p>`;
 else h+=`<div class="termquiz-feedback ${v.feedback.ok?'correct':'incorrect'}" role="status" aria-live="polite"><strong>${v.feedback.ok?'정답입니다. 오답노트에서 삭제했습니다!':'오답입니다. 아래 정답을 확인하고 다시 도전하세요. 이 문제는 오답노트에 남아 있습니다.'}</strong><p>내가 입력한 답: <b>${esc(v.feedback.answer||'')}</b></p><p>정답: <b>${esc(q.term)}</b></p><p>${esc(q.meaning)}</p>${q.example?`<p><b>예시</b> · ${esc(q.example)}</p>`:''}</div><div class="termquiz-review-actions">${v.feedback.ok?'':`<button type="button" id="tqReviewRetry" class="primary">↻ 같은 문제 다시 풀기</button>`}<button type="button" id="tqReviewNext" class="secondary">${v.at===v.ids.length-1?'복습 결과 보기':'다음 오답 →'}</button></div>`;
 h+='</div><p class="note">오답노트는 브라우저에 저장됩니다. 오답노트에서 맞힌 문제만 삭제하므로, 일반 퀴즈를 새로 시작해도 남은 오답은 유지됩니다.</p>';$('view').innerHTML=h;
 if($('tqReviewForm')){
-  const form=$('tqReviewForm'), input=$('tqReviewAnswer');
-  form.addEventListener('submit',e=>{
-    e.preventDefault();
-    const answer=input.value.trim();
-    if(!answer){const er=$('tqReviewError');er.textContent='답을 입력한 다음 정답 확인을 눌러주세요.';er.hidden=false;input.focus();return}
+  const form=$('tqReviewForm'), input=$('tqReviewAnswer'),button=$('tqReviewCheck');
+  let processing=false;
+  const checkAnswer=e=>{
+    if(e)e.preventDefault();
+    if(processing)return;
+    const answer=String(input.value||'').trim();
+    const er=$('tqReviewError');
+    if(!answer){if(er){er.textContent='답을 입력한 다음 정답 확인을 눌러주세요.';er.hidden=false;}input.focus();return;}
+    processing=true;
+    if(button){button.disabled=true;button.textContent='채점 중…';}
     try{
-      const state=load(), ss=state.review;
-      if(!ss?.ids?.length){drawReview();return}
-      // 화면 재접속 시 남아 있던 답변 상태 때문에 클릭이 무시되지 않게 한다.
-      if(ss.feedback){drawReview();return}
+      const state=load(),ss=state.review;
+      if(!ss?.ids?.length)throw new Error('오답 문제를 찾지 못했습니다. 다시 시작해주세요.');
       const qq=current(ss);
-      if(!qq){drawReview();return}
+      if(!qq)throw new Error('현재 문제를 찾을 수 없습니다. 다시 시작해주세요.');
       const ok=isCorrect(qq,answer);
       ss.feedback={ok,answer};
-      if(ok){delete state.wrong[qq.id];ss.correct++}
-      else{state.wrong[qq.id]={count:(state.wrong[qq.id]?.count||0)+1,updated:Date.now()};ss.missed++}
+      if(ok){delete state.wrong[qq.id];ss.correct=(ss.correct||0)+1;}
+      else{state.wrong[qq.id]={count:(state.wrong[qq.id]?.count||0)+1,updated:Date.now()};ss.missed=(ss.missed||0)+1;}
       save(state);
       drawReview();
     }catch(error){
-      const er=$('tqReviewError');
-      if(er){er.hidden=false;er.textContent='채점 처리에 문제가 발생했습니다. 새로고침 후 다시 시도해주세요.'}
-      console.error('DEQ 오답 채점 오류',error);
+      console.error('DEQ 오답노트 채점 실패:',error);
+      if(er){er.hidden=false;er.textContent='채점 오류: '+error.message;}
+      processing=false;
+      if(button){button.disabled=false;button.textContent='정답 확인';}
     }
-  });
+  };
+  form.addEventListener('submit',checkAnswer);
   input.focus();
 }
 if($('tqReviewRetry'))$('tqReviewRetry').onclick=()=>{const st=load();if(!st.review?.feedback||st.review.feedback.ok)return;st.review.feedback=null;save(st);drawReview()};
