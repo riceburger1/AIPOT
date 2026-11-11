@@ -19,8 +19,47 @@ function addOne(items){const a=shuffle(items);if(a.length)chosen.push(a[0].id)}
 add(pool.filter(q=>!seen.has(q.id)&&!old.includes(q.id)));add(pool.filter(q=>!old.includes(q.id)));add(pool);return shuffle(chosen.slice(0,SIZE))}
 function launchMain(mode){const s=load();if(mode==='same'&&s.main?.ids?.length){s.main={ids:[...s.main.ids],at:0,feedback:null,correct:0,missed:0}}else{const ids=select30(s);s.seen=[...new Set([...(s.seen||[]),...ids])];s.main={ids,at:0,feedback:null,correct:0,missed:0}}save(s);drawMain()}
 function current(session){return session?.ids?.[session.at]&&byId.get(session.ids[session.at])}
-function aliases(term){let a=[term],m=String(term).match(/^(.+?)\s*\(([^)]+)\)\s*$/);if(m){a.push(m[1].trim());if(m[2].trim().length>=2)a.push(m[2].trim())}if(term.includes('/'))a.push(...term.split('/').map(v=>v.trim()));return a}
-function isCorrect(q,answer){const u=norm(answer);return !!u&&aliases(q.term).some(x=>norm(x)===u)}
+// 입력의 공백·기호 차이 및 병기된 영문 약어를 처리한다. 핵심 용어 자체는 보존한다.
+function aliases(term){
+  const raw=String(term).trim();
+  const a=new Set([raw]);
+  // '증강현실(AR)' → '증강현실' 또는 'AR'도 정답
+  for(const m of raw.matchAll(/\(([^)]+)\)/g)){
+    const inside=m[1].trim();
+    const outside=raw.replace(m[0],'').trim();
+    if(outside)a.add(outside);
+    if(inside.length>=2 && !/^(예|구분|설명|참고)/.test(inside))a.add(inside);
+  }
+  if(raw.includes('/'))raw.split('/').forEach(v=>v.trim()&&a.add(v.trim()));
+  // 단순 띄어쓰기 외에 널리 쓰이는 같은 개념의 국문 표기만 추가
+  const variants={
+    '탈억제 효과':['온라인 탈억제 효과'],
+    '집단 지성':['집단지성'],
+    '집단 극화':['집단극화'],
+    '기밀성':['비밀성'],
+    '무결성':['완전성'],
+    '인포데믹스':['인포데믹'],
+    '스마트폰 과의존':['스마트폰과의존'],
+    '디지털 워터마킹':['워터마킹'],
+    '포렌식 마킹':['포렌식마킹'],
+    '2차적저작물작성권':['2차적 저작물 작성권'],
+    '사물인터넷':['IoT'],
+    '증강현실(AR)':['증강현실','AR'],
+    '확장현실(XR)':['확장현실','XR'],
+    '정보보호 관리체계':['ISMS'],
+    '분산서비스거부공격':['DDoS','분산서비스거부공격'],
+    '디지털 리터러시':['디지털문해력'],
+    '딥페이크':['Deepfake'],
+    '블랙리스트':['차단목록'],
+    '화이트리스트':['허용목록']
+  };
+  (variants[raw]||[]).forEach(v=>a.add(v));
+  return [...a].filter(Boolean);
+}
+function isCorrect(q,answer){
+  const u=norm(answer);
+  return !!u&&aliases(q.term).some(x=>norm(x)===u);
+}
 function head(title,desc){return `<div class="sectionhead"><div><h2>${esc(title)}</h2><p>${esc(desc)}</p></div></div>`}
 function tools(){const n=Object.keys(load().wrong||{}).length;return `<div class="termquiz-tools"><button id="tqStart" type="button">✦ 새로운 30문제 도전</button><button id="tqSame" type="button">↻ 동일 30문제 다시 풀기</button><button id="tqToWrong" type="button">✎ 오답노트 열기 (${n})</button></div>`}
 function bindTools(){if($('tqStart'))$('tqStart').onclick=()=>launchMain('new');if($('tqSame'))$('tqSame').onclick=()=>launchMain('same');if($('tqToWrong'))$('tqToWrong').onclick=()=>document.querySelector('[data-tab="deqwrong"]').click()}
@@ -39,9 +78,10 @@ if(!s.review?.ids?.length){$('view').innerHTML=h+`<div class="card"><h3>남아 �
 let v=s.review;while(v.at<v.ids.length&&!s.wrong[v.ids[v.at]]){v.at++;v.feedback=null}if(v.at>=v.ids.length){save(s);$('view').innerHTML=h+`<div class="card done"><h2>이번 오답 복습 완료</h2><div class="gridStats"><div class="stat"><strong>${v.correct}</strong><small>정답으로 삭제</small></div><div class="stat"><strong>${v.missed}</strong><small>복습 중 오답</small></div><div class="stat"><strong>${n}</strong><small>남은 오답</small></div></div><p>틀린 문제는 오답노트에 남아 있습니다. 다시 도전하면 재출제됩니다.</p><button class="primary" id="tqReviewAgain">남은 오답 다시 풀기</button></div>`;$('tqReviewAgain').onclick=launchReview;return}
 const q=current(v),answered=!!v.feedback;h+=`<div class="gridStats"><div class="stat"><strong>${v.at+1}/${v.ids.length}</strong><small>이번 복습</small></div><div class="stat"><strong>${v.correct}</strong><small>정답으로 삭제</small></div><div class="stat"><strong>${n}</strong><small>남은 오답</small></div></div><div class="card termquiz-card"><div class="qmeta"><span>오답 복습 · ${q.chapter}장</span><span>누적 오답 ${s.wrong[q.id]?.count||1}회</span></div><div class="question">설명에 맞는 핵심 용어를 입력하세요.</div><p class="termquiz-definition">${esc(q.meaning)}</p>`;
 if(!answered)h+=`<form id="tqReviewForm"><label for="tqReviewAnswer">정답 입력</label><input id="tqReviewAnswer" class="shortInput" autocomplete="off" required placeholder="기억나는 용어를 입력하세요"><button class="primary">정답 확인</button></form>`;
-else h+=`<div class="termquiz-feedback ${v.feedback.ok?'correct':'incorrect'}"><strong>${v.feedback.ok?'정답입니다. 오답노트에서 삭제했습니다!':'아직 오답입니다. 오답노트에 남겨 둡니다.'}</strong><p>정답: <b>${esc(q.term)}</b></p><p>${esc(q.meaning)}</p>${q.example?`<p><b>예시</b> · ${esc(q.example)}</p>`:''}</div><button id="tqReviewNext" class="primary">${v.at===v.ids.length-1?'복습 결과':'다음 오답 →'}</button>`;
+else h+=`<div class="termquiz-feedback ${v.feedback.ok?'correct':'incorrect'}"><strong>${v.feedback.ok?'정답입니다. 오답노트에서 삭제했습니다!':'오답입니다. 정답을 확인하고 다시 풀어보세요. (오답노트에 계속 보관)'}</strong><p>입력한 답: <b>${esc(v.feedback.answer||'')}</b></p><p>정답: <b>${esc(q.term)}</b></p><p>${esc(q.meaning)}</p>${q.example?`<p><b>예시</b> · ${esc(q.example)}</p>`:''}</div>${v.feedback.ok?'':`<button type="button" id="tqReviewRetry" class="primary">↻ 이 문제 다시 풀기</button>`}<button id="tqReviewNext" type="button" ${v.feedback.ok?'class="primary"':''}>${v.at===v.ids.length-1?'복습 결과':'다음 오답 →'}</button>`;
 h+='</div><p class="note">오답노트는 브라우저에 저장됩니다. 오답노트에서 맞힌 문제만 삭제하므로, 일반 퀴즈를 새로 시작해도 남은 오답은 유지됩니다.</p>';$('view').innerHTML=h;
 if($('tqReviewForm')){$('tqReviewForm').onsubmit=e=>{e.preventDefault();const answer=$('tqReviewAnswer').value;const state=load(),ss=state.review,qq=current(ss);if(ss.feedback||!answer.trim()||!qq)return;const ok=isCorrect(qq,answer);ss.feedback={ok,answer};if(ok){delete state.wrong[qq.id];ss.correct++}else{state.wrong[qq.id]={count:(state.wrong[qq.id]?.count||0)+1,updated:Date.now()};ss.missed++}save(state);drawReview()};$('tqReviewAnswer').focus()}
+if($('tqReviewRetry'))$('tqReviewRetry').onclick=()=>{const st=load();if(!st.review?.feedback||st.review.feedback.ok)return;st.review.feedback=null;save(st);drawReview()};
 if($('tqReviewNext'))$('tqReviewNext').onclick=()=>{const st=load();if(!st.review.feedback)return;st.review.at++;st.review.feedback=null;save(st);drawReview()}}
 window.DEQTermQuiz={init,main:drawMain,wrong:drawReview};
 })();
