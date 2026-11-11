@@ -41,3 +41,19 @@
 .subj-review{font-size:13px;color:#a05222;background:#fff8df;padding:10px;border-radius:8px;line-height:1.7}
 .subj-finish{text-align:center;padding:28px 16px}.subj-finish .symbol{font-size:46px}
 @media(max-width:650px){.subj-tools{grid-template-columns:1fr}.subj-tools button{min-height:44px}#subjForm{grid-template-columns:1fr}.subj-hint strong{font-size:18px}}
+
+/* DEQ 핵심용어 주관식 + 순환형 오답노트 */
+.tabs .term-tab:not(.active){background:#e8f2ff;border-color:#abc8f2;color:#174881}
+.tabs .wrong-tab:not(.active){background:#fff2df;border-color:#ecd2a0;color:#8a5113}
+.termquiz-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:13px 0 20px}
+.termquiz-tools button{border-radius:13px;padding:12px;background:#fff;border:1px solid #cbd8ec;font-weight:800;color:#204377;min-height:53px}
+.termquiz-tools button:first-child{background:#eaf3ff;border-color:#a8c7ed}
+.termquiz-tools button:last-child{background:#fff5e7;border-color:#eccf9c}
+.termquiz-card{max-width:880px;margin:16px auto}
+.termquiz-definition{background:#eef4fc;border-left:4px solid #4671c9;border-radius:8px;padding:16px;font-size:17px;line-height:1.8;color:#182f56;white-space:pre-wrap}
+#tqForm,#tqReviewForm{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:end;margin-top:15px}
+#tqForm label,#tqReviewForm label{grid-column:1/-1;font-weight:800}
+.termquiz-feedback{border:1px solid #c8ded3;border-radius:11px;padding:14px;margin:14px 0;background:#eaf8f0;line-height:1.65}
+.termquiz-feedback.incorrect{background:#fff6ed;border-color:#e4c7a5}
+.termquiz-feedback p{margin:6px 0}
+@media(max-width:680px){.termquiz-tools{grid-template-columns:1fr}#tqForm,#tqReviewForm{grid-template-columns:1fr}.termquiz-definition{font-size:15px}}
