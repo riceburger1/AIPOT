@@ -57,3 +57,5 @@
 .termquiz-feedback.incorrect{background:#fff6ed;border-color:#e4c7a5}
 .termquiz-feedback p{margin:6px 0}
 @media(max-width:680px){.termquiz-tools{grid-template-columns:1fr}#tqForm,#tqReviewForm{grid-template-columns:1fr}.termquiz-definition{font-size:15px}}
+
+.termquiz-review-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:13px}.termquiz-error{color:#9c302b;font-weight:700;margin:9px 0}.termquiz-feedback.incorrect strong{color:#9c302b}.termquiz-feedback.incorrect{border-left:4px solid #c04545}
