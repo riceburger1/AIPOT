@@ -5,7 +5,7 @@ const seedNum=s=>{let h=2166136261;for(const c of s){h=Math.imul(h^c.charCodeAt(
 function rng(seed){let a=seed>>>0;return()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296}};
 function shuffle(arr,r){let a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const seoulDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-const qKey=type=>type==='ai'?`yeonje-v7-allchapters-${type}-${localDay()}`:type==='deq'?`yeonje-v8-deq-35-16ch-${seoulDay()}`:`yeonje-v4-${type}-${localDay()}`;
+const qKey=type=>type==='ai'?`yeonje-v7-allchapters-${type}-${localDay()}`:type==='deq'?`yeonje-v9-deq-35-24ch-${seoulDay()}`:`yeonje-v4-${type}-${localDay()}`;
 function getState(type){try{return JSON.parse(localStorage.getItem(qKey(type)))}catch(e){return null}}
 function putState(type,state){localStorage.setItem(qKey(type),JSON.stringify(state))}
 function allTerms(type){return type==='ai'?DATA.aiTerms:DATA.deq.flatMap(c=>c.terms.map(t=>({...t,chapter:c.number})))}
@@ -35,7 +35,7 @@ function createBalancedAiQuestions(session=0,previousTerms=[]){
  });
 }
 function createDeqSampleQuestions(session=0,previousTerms=[]){
- // DEQ daily set: 30 four-choice and 5 short answer; every one of 16 chapters is represented.
+ // DEQ daily set: 30 four-choice and 5 short answer; every one of 24 chapters is represented.
  const bank=DATA.deqQuizBank, day=seoulDay(), r=rng(seedNum(day+'-deq-35-'+session));
  const avoid=new Set(previousTerms), seen=new Set(JSON.parse(localStorage.getItem('yeonje-deq-35-seen')||'[]'));
  const used=new Set(), selected=[];
@@ -47,16 +47,16 @@ function createDeqSampleQuestions(session=0,previousTerms=[]){
  }
  const mc=bank.mc.map(x=>({...x,type:'mc'})), short=bank.short.map(x=>({...x,type:'short'}));
  // 1 multiple-choice question for every chapter, then 14 more rotated over chapters.
- for(let c=1;c<=16;c++)take(mc,c);
+ for(let c=1;c<=DATA.deq.length;c++)take(mc,c);
  const dateOrd=Math.floor(Date.parse(day+'T00:00:00Z')/86400000);
- for(let i=0;i<14;i++)take(mc,1+(dateOrd+session*3+i)%16);
+ for(let i=0;i<30-DATA.deq.length;i++)take(mc,1+(dateOrd+session*3+i)%DATA.deq.length);
  while(selected.filter(x=>x.type==='mc').length<30){
   const candidate=shuffle(mc.filter(x=>!used.has(identity(x))),r)
    .sort((a,b)=>Number(seen.has(identity(a)))-Number(seen.has(identity(b))))[0];
   if(!candidate)break;used.add(identity(candidate));selected.push(candidate);
  }
- // The five written questions rotate across all 16 chapters over successive days.
- const targets=[];for(let i=0;i<5;i++)targets.push(1+(dateOrd*5+session*5+i)%16);
+ // The five written questions rotate across all DEQ chapters over successive days.
+ const targets=[];for(let i=0;i<5;i++)targets.push(1+(dateOrd*5+session*5+i)%DATA.deq.length);
  for(const c of targets)take(short,c);
  while(selected.filter(x=>x.type==='short').length<5){
   const candidate=shuffle(short.filter(x=>!used.has(identity(x))),r)
@@ -99,15 +99,15 @@ function renderTerms(type){
  terms=terms.filter(t=>(t.term+t.meaning+t.example).toLowerCase().includes(filter.toLowerCase()));
  let chapterCount=chapters.length, totalTerms=chapters.reduce((n,c)=>n+c.terms.length,0);
  const study=isDeq?chapters.filter(c=>deqChapter==='all'?c.number>=13:String(c.number)===String(deqChapter)).filter(c=>c.sections):[];
- const lessonHtml=study.length?`<div class="chapter-lesson-head"><h3>📚 첨부 PDF 기반 심화 학습 챕터</h3><p class="description">13~16장 신규 추가 · 시험 핵심내용과 개념 구분</p></div><div class="course-grid">${study.map(c=>`<article class="card deq-lesson"><span class="tag">DEQ ${c.number}장 · ${escapeHtml(c.source||'')}</span><h3>${escapeHtml(c.title)}</h3>${c.sections.map((section,i)=>`<details class="lesson-item" ${i===0?'open':''}><summary>${i+1}. ${escapeHtml(section.title)}</summary><p class="description">${escapeHtml(section.body)}</p><div class="key"><b>시험 포인트</b> · ${escapeHtml(section.key)}</div></details>`).join('')}</article>`).join('')}</div>`:'';
- $('view').innerHTML=pageHeader(isDeq?'DEQ 디지털 윤리 핵심용어':'AI-POT 핵심단어',isDeq?`${chapterCount}개 챕터 · ${totalTerms}개 핵심용어 · 새 PDF 심화 4개 챕터`:`${DATA.aiTerms.length}개 핵심 단어`)+
+ const lessonHtml=study.length?`<div class="chapter-lesson-head"><h3>📚 첨부 PDF 기반 심화 학습 챕터</h3><p class="description">13~24장 PDF 심화 학습 · 시험 핵심내용과 개념 구분</p></div><div class="course-grid">${study.map(c=>`<article class="card deq-lesson"><span class="tag">DEQ ${c.number}장 · ${escapeHtml(c.source||'')}</span><h3>${escapeHtml(c.title)}</h3>${c.sections.map((section,i)=>`<details class="lesson-item" ${i===0?'open':''}><summary>${i+1}. ${escapeHtml(section.title)}</summary><p class="description">${escapeHtml(section.body)}</p><div class="key"><b>시험 포인트</b> · ${escapeHtml(section.key)}</div></details>`).join('')}</article>`).join('')}</div>`:'';
+ $('view').innerHTML=pageHeader(isDeq?'DEQ 디지털 윤리 핵심용어':'AI-POT 핵심단어',isDeq?`${chapterCount}개 챕터 · ${totalTerms}개 핵심용어 · PDF 심화 12개 챕터`:`${DATA.aiTerms.length}개 핵심 단어`)+
  `<div class="toolbar">${isDeq?`<select id="deqch"><option value="all">전체 ${chapterCount}개 챕터</option>${chapters.map(c=>`<option value="${c.number}">${c.number}장 ${escapeHtml(c.title)}</option>`).join('')}</select>`:''}<input id="termsearch" type="search" placeholder="용어 또는 설명 검색" value="${escapeHtml(filter)}"></div>`+
  lessonHtml+`<p class="note">핵심 용어 검색 결과 ${terms.length}개</p><div class="course-grid">`+
  terms.map(t=>`<article class="card"><span class="tag">${isDeq?'DEQ '+t.chapter+'장':'AI-POT'}</span><h3>${escapeHtml(t.term)}</h3><p class="description">${escapeHtml(t.meaning)}</p><div class="example"><b>쉽게 이해하기</b> · ${escapeHtml(t.example)}</div></article>`).join('')+`</div>`;
  if(isDeq){$('deqch').value=deqChapter;$('deqch').onchange=e=>{deqChapter=e.target.value;filter='';renderTerms('deq')}}
  $('termsearch').oninput=e=>{filter=e.target.value;const pos=e.target.selectionStart;renderTerms(type);$('termsearch').focus();$('termsearch').setSelectionRange(pos,pos)};
 }
-function renderQuiz(type){currentQuizType=type;const s=stateOf(type),label=type==='ai'?'AI-POT':type==='deqpdf'?'DEQ PDF 샘플':'DEQ 디지털 윤리';const correct=Object.values(s.results).filter(x=>x==='correct').length;const total=s.questions.length;let head=pageHeader(type==='deqpdf'?'DEQ 지도사 PDF 샘플 20문제':`${label} 오늘의 퀴즈`,type==='deqpdf'?'첨부 PDF 원문 순서 · 객관식 13문항 + 주관식 7문항 · 별도 연습 기록':`${type==='deq'?seoulDay():localDay()} · ${type==='deq'?'객관식 30문항 + 주관식 5문항':'객관식 15문항 + 주관식 5문항'} · 자정 00:00 자동 교체${type==='ai'?' · 1~7회차 전 범위(각 회차 최소 2문제)':type==='deq'?' · 전체 16장 매일 출제 · 2026 지도사 샘플 유형':''}`)+quizModeHeader(type);if(s.done){$('view').innerHTML=head+quizActions(type)+`<div class="card done"><div class="symbol">🏆</div><h2>${type==='deqpdf'?'PDF 샘플 20문제를 모두 맞혔어요!':`오늘의 ${total}문제를 모두 맞혔어요!`}</h2><p>오답 재도전까지 완료했습니다.</p><div class="gridStats"><div class="stat"><strong>${total}/${total}</strong><small>최종 정답</small></div><div class="stat"><strong>${s.attempts}</strong><small>총 답변 횟수</small></div><div class="stat"><strong>${Object.values(s.misses).reduce((a,b)=>a+b,0)}</strong><small>오답 횟수</small></div></div><p class="hint">재도전 버튼으로 오늘도 계속 연습할 수 있습니다. 자정에는 기본 새 문제로 바뀝니다.</p></div>`;bindQuizActions(type);bindQuizMode(type);return}
+function renderQuiz(type){currentQuizType=type;const s=stateOf(type),label=type==='ai'?'AI-POT':type==='deqpdf'?'DEQ PDF 샘플':'DEQ 디지털 윤리';const correct=Object.values(s.results).filter(x=>x==='correct').length;const total=s.questions.length;let head=pageHeader(type==='deqpdf'?'DEQ 지도사 PDF 샘플 20문제':`${label} 오늘의 퀴즈`,type==='deqpdf'?'첨부 PDF 원문 순서 · 객관식 13문항 + 주관식 7문항 · 별도 연습 기록':`${type==='deq'?seoulDay():localDay()} · ${type==='deq'?'객관식 30문항 + 주관식 5문항':'객관식 15문항 + 주관식 5문항'} · 자정 00:00 자동 교체${type==='ai'?' · 1~7회차 전 범위(각 회차 최소 2문제)':type==='deq'?' · 전체 24장 매일 출제 · 2026 지도사 샘플 유형':''}`)+quizModeHeader(type);if(s.done){$('view').innerHTML=head+quizActions(type)+`<div class="card done"><div class="symbol">🏆</div><h2>${type==='deqpdf'?'PDF 샘플 20문제를 모두 맞혔어요!':`오늘의 ${total}문제를 모두 맞혔어요!`}</h2><p>오답 재도전까지 완료했습니다.</p><div class="gridStats"><div class="stat"><strong>${total}/${total}</strong><small>최종 정답</small></div><div class="stat"><strong>${s.attempts}</strong><small>총 답변 횟수</small></div><div class="stat"><strong>${Object.values(s.misses).reduce((a,b)=>a+b,0)}</strong><small>오답 횟수</small></div></div><p class="hint">재도전 버튼으로 오늘도 계속 연습할 수 있습니다. 자정에는 기본 새 문제로 바뀝니다.</p></div>`;bindQuizActions(type);bindQuizMode(type);return}
 const ix=s.queue[s.position],q=s.questions[ix],num=ix+1,feedback=s.feedback;let html=head+quizActions(type)+`<div class="gridStats"><div class="stat"><strong>${correct}/${total}</strong><small>현재 맞힌 문항</small></div><div class="stat"><strong>${s.round===1?'1차':'오답'}</strong><small>진행 단계</small></div><div class="stat"><strong>${Object.values(s.misses).reduce((a,b)=>a+b,0)}</strong><small>오답 누적</small></div></div><div class="progress"><div class="bar" style="width:${Math.round(correct/total*100)}%"></div></div><div class="card"><div class="qmeta"><span>문항 ${num} / ${total} · ${q.type==='mc'?'객관식':'주관식'}${q.chapter?' · '+escapeHtml(q.chapter):''}</span><span>${s.position+1} / ${s.queue.length}${s.round>1?' · 오답 재도전':''}</span></div><div class="question">${escapeHtml(q.question)}</div>`;
 if(q.type==='mc')html+=`<div class="choices">${q.options.map((v,i)=>`<button class="choice ${feedback?(norm(v)===norm(q.answer)?'correct':norm(feedback.value)===norm(v)?'wrong':''):''}" data-choice="${i}" ${feedback?'disabled':''}>${i+1}. ${escapeHtml(v)}</button>`).join('')}</div>`;else html+=`<form id="shortform"><input class="shortInput" id="shortAnswer" autocomplete="off" placeholder="핵심 용어를 입력하세요" ${feedback?'disabled':''} value="${feedback?escapeHtml(feedback.value):''}" aria-label="주관식 답"><div class="actions"><button class="primary" ${feedback?'disabled':''} type="submit">정답 확인</button></div></form>`;
 if(feedback)html+=`<div class="feedback ${feedback.ok?'':'bad'}"><strong>${feedback.ok?'정답입니다! 🎉':'오답입니다. 오답 재도전에서 다시 나옵니다.'}</strong><div>정답: <b>${escapeHtml(q.answer)}</b></div><div>${escapeHtml(q.meaning)}</div><div>${escapeHtml(q.example)}</div></div><div class="actions"><button id="nextBtn" class="primary">${s.position===s.queue.length-1?'다음 단계':'다음 문제 →'}</button></div>`;
